@@ -166,17 +166,6 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
                     vertical = 2.dp
                 )
             )
-            Text(
-                text = stringResource(R.string.p),
-                textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
-                modifier = Modifier.padding(
-                    horizontal = 30.dp,
-                    vertical = 2.dp
-                )
-            )
-
         }
     }
 }
