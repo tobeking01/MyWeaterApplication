@@ -19,9 +19,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -63,17 +66,28 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = stringResource(R.string.app_name ),
+                    Text(
+                        text = stringResource(R.string.app_name),
                         fontWeight = FontWeight.Bold,
                         fontSize = 30.sp,
                     )
                 },
-                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color.Yellow )            )
+                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color.Yellow)
+            )
         },
         bottomBar = {
             BottomAppBar { /* Bottom app bar content */ }
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                modifier = Modifier
+                    .padding(all = 16.dp),
+                onClick = {
+                }
+            ) {
+                Icon(imageVector = Icons.Filled.Add, contentDescription = "Add")
+            }
         }
-
     ) { contentPadding ->
         Column(
             modifier = Modifier
@@ -91,7 +105,7 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
                     vertical = 20.dp
                 )
             )
-            Row (horizontalArrangement = Arrangement.SpaceEvenly){
+            Row(horizontalArrangement = Arrangement.SpaceEvenly) {
                 Text(
                     text = stringResource(R.string.current_temperature),
                     textAlign = TextAlign.Justify,
@@ -103,13 +117,14 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
                     )
                 )
                 Image(
-                    painter  = painterResource((R.drawable.day_icon)),
+                    painter = painterResource(R.drawable.day_icon),
                     contentDescription = stringResource(R.string.icon),
                     modifier = Modifier
                         .aspectRatio(9f / 10f)
                         .padding(
                             horizontal = 10.dp,
-                            vertical = 15.dp)
+                            vertical = 15.dp
+                        )
                 )
             }
             Text(
@@ -122,10 +137,7 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
                     vertical = 2.dp
                 )
             )
-            Spacer(
-                modifier = Modifier
-                    .size(30.dp)
-            )
+            Spacer(modifier = Modifier.size(30.dp))
             Text(
                 text = stringResource(R.string.low),
                 textAlign = TextAlign.Center,
