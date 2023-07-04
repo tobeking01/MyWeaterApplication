@@ -120,17 +120,17 @@ fun ForecastScreen() {
                         )
                         Spacer(modifier = Modifier.size(4.dp))
                         Text(
-                            text = "Temp: ${forecast.temp.day.toFloat()}°C",
+                            text = "Temp: ${forecast.temp.day.toFloat()}°",
                         )
                     }
                     Spacer(modifier = Modifier.size(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "High: ${forecast.temp.max.toFloat()}°C",
+                            text = "High: ${forecast.temp.max.toFloat()}°",
                         )
                         Spacer(modifier = Modifier.size(4.dp))
                         Text(
-                            text = "Low: ${forecast.temp.min.toFloat()}°C",
+                            text = "Low: ${forecast.temp.min.toFloat()}°",
                         )
                     }
                 }
