@@ -18,6 +18,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -39,11 +41,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.myweatherapplication.ui.theme.MyWeatherApplicationTheme
+import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.format.DateTimeFormatter
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,29 +85,66 @@ fun WeatherApp() {
 fun ForecastScreen() {
     val forecastItems = remember { generateForecastItems() }
 
+    val dateFormatter = SimpleDateFormat("MMM d", Locale.getDefault())
+    val timeFormatter = SimpleDateFormat("h:mma", Locale.getDefault())
+
     LazyColumn {
         items(forecastItems) { forecast ->
-            Row(
+            val date = Date(forecast.date)
+            val sunrise = Date(forecast.sunrise)
+            val sunset = Date(forecast.sunset)
+
+            Column(
                 modifier = Modifier
                     .padding(vertical = 8.dp)
                     .fillMaxWidth()
-                    .wrapContentHeight(),
-                verticalAlignment = Alignment.CenterVertically
+                    .wrapContentHeight()
+                    .padding(horizontal = 16.dp)
             ) {
-                Image(
-                    painter = painterResource(R.drawable.day_icon), // Replace with your icon resource
-                    contentDescription = stringResource(R.string.icon),
-                    modifier = Modifier.size(40.dp)
-                )
-                Column(
-                    modifier = Modifier.padding(start = 8.dp)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "Date: ${forecast.date}")
-                    Text(text = "Temp: ${forecast.temp.day}°C")
-                    Text(text = "High: ${forecast.temp.max}°C")
-                    Text(text = "Low: ${forecast.temp.min}°C")
-                    Text(text = "Sunrise: ${forecast.sunrise}")
-                    Text(text = "Sunset: ${forecast.sunset}")
+                    Image(
+                        painter = painterResource(R.drawable.day_icon), // Replace with your icon resource
+                        contentDescription = stringResource(R.string.icon),
+                        modifier = Modifier.size(40.dp)
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = dateFormatter.format(date),
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.size(4.dp))
+                        Text(
+                            text = "Temp: ${forecast.temp.day.toFloat()}°C",
+                        )
+                    }
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "High: ${forecast.temp.max.toFloat()}°C",
+                        )
+                        Spacer(modifier = Modifier.size(4.dp))
+                        Text(
+                            text = "Low: ${forecast.temp.min.toFloat()}°C",
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.size(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Sunrise: ${timeFormatter.format(sunrise)}",
+                    )
+                    Text(
+                        text = "Sunset: ${timeFormatter.format(sunset)}",
+                    )
                 }
             }
         }
@@ -108,20 +153,17 @@ fun ForecastScreen() {
 
 private fun generateForecastItems(): List<DayForecast> {
     val forecastItems = mutableListOf<DayForecast>()
-    val dateFormatter = DateTimeFormatter.ofPattern("MMM d")
-    val timeFormatter = DateTimeFormatter.ofPattern("h:mma")
-
+    val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
     for (i in 0 until 16) {
-        // Get the UTC timestamps using a UTC calculator
-        val date = LocalDate.now().plusDays(i.toLong())
-        val sunrise = LocalDateTime.of(date, LocalTime.of(i + 1, 0)).toEpochSecond(ZoneOffset.UTC)
-        val sunset = LocalDateTime.of(date, LocalTime.of(i + 2, 0)).toEpochSecond(ZoneOffset.UTC)
+        val date = calendar.time
+        val sunrise = calendar.apply { add(Calendar.HOUR_OF_DAY, i + 1) }.time
+        val sunset = calendar.apply { add(Calendar.HOUR_OF_DAY, 11) }.time
 
         val temp = ForecastTemp(i * 10.0f, i * 5.0f, i * 15.0f)
         val forecast = DayForecast(
-            date = date.format(dateFormatter),
-            sunrise = LocalDateTime.ofEpochSecond(sunrise, 0, ZoneOffset.UTC).format(timeFormatter),
-            sunset = LocalDateTime.ofEpochSecond(sunset, 0, ZoneOffset.UTC).format(timeFormatter),
+            date = date.time,
+            sunrise = sunrise.time,
+            sunset = sunset.time,
             temp = temp,
             precipitation = i * 1.2f,
             humidity = i * 80
