@@ -1,71 +1,140 @@
 package com.example.myweatherapplication
 
-import android.graphics.drawable.Icon
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.BottomAppBar
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role.Companion.Image
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.myweatherapplication.ui.theme.MyWeatherApplicationTheme
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MyWeatherApplicationTheme (darkTheme = false){
-                // A surface container using the 'background' color from the theme
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    Greeting("Android")
+            MyWeatherApplicationTheme {
+                WeatherApp()
+            }
+        }
+    }
+}
+
+@Composable
+fun WeatherApp() {
+    val navController = rememberNavController()
+
+    NavHost(navController = navController, startDestination = "Start") {
+        composable("Start") {
+            Greeting(
+                name = "Class",
+                navController = navController
+            )
+        }
+        composable("Forecast") {
+            ForecastScreen()
+        }
+    }
+}
+
+@Composable
+fun ForecastScreen() {
+    val forecastItems = remember { generateForecastItems() }
+
+    LazyColumn {
+        items(forecastItems) { forecast ->
+            Row(
+                modifier = Modifier
+                    .padding(vertical = 8.dp)
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.day_icon), // Replace with your icon resource
+                    contentDescription = stringResource(R.string.icon),
+                    modifier = Modifier.size(40.dp)
+                )
+                Column(
+                    modifier = Modifier.padding(start = 8.dp)
+                ) {
+                    Text(text = "Date: ${forecast.date}")
+                    Text(text = "Temp: ${forecast.temp.day}°C")
+                    Text(text = "High: ${forecast.temp.max}°C")
+                    Text(text = "Low: ${forecast.temp.min}°C")
+                    Text(text = "Sunrise: ${forecast.sunrise}")
+                    Text(text = "Sunset: ${forecast.sunset}")
                 }
             }
         }
     }
 }
 
+private fun generateForecastItems(): List<DayForecast> {
+    val forecastItems = mutableListOf<DayForecast>()
+    val dateFormatter = DateTimeFormatter.ofPattern("MMM d")
+    val timeFormatter = DateTimeFormatter.ofPattern("h:mma")
+
+    for (i in 0 until 16) {
+        // Get the UTC timestamps using a UTC calculator
+        val date = LocalDate.now().plusDays(i.toLong())
+        val sunrise = LocalDateTime.of(date, LocalTime.of(i + 1, 0)).toEpochSecond(ZoneOffset.UTC)
+        val sunset = LocalDateTime.of(date, LocalTime.of(i + 2, 0)).toEpochSecond(ZoneOffset.UTC)
+
+        val temp = ForecastTemp(i * 10.0f, i * 5.0f, i * 15.0f)
+        val forecast = DayForecast(
+            date = date.format(dateFormatter),
+            sunrise = LocalDateTime.ofEpochSecond(sunrise, 0, ZoneOffset.UTC).format(timeFormatter),
+            sunset = LocalDateTime.ofEpochSecond(sunset, 0, ZoneOffset.UTC).format(timeFormatter),
+            temp = temp,
+            precipitation = i * 1.2f,
+            humidity = i * 80
+        )
+        forecastItems.add(forecast)
+    }
+
+    return forecastItems
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
+fun Greeting(name: String, navController: NavHostController) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -83,19 +152,15 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
             ExtendedFloatingActionButton(
                 modifier = Modifier
                     .padding(all = 16.dp),
-                onClick = {},
-
+                onClick = { navController.navigate("Forecast") },
                 text = { Text(text = stringResource(R.string.forecast)) },
-                icon = { Icon(imageVector = Icons.Default.Add, contentDescription = "Forecast", ) }
+                icon = {}
             )
         },
         floatingActionButtonPosition = FabPosition.Center,
-
     ) { contentPadding ->
         Column(
             modifier = Modifier
-                .statusBarsPadding()
-                .navigationBarsPadding()
                 .padding(contentPadding)
         ) {
             Text(
@@ -189,6 +254,10 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 @Composable
 fun GreetingPreview() {
     MyWeatherApplicationTheme {
-        Greeting("Android")
+        val navController = rememberNavController()
+        Greeting(
+            name = "Class",
+            navController = navController
+        )
     }
 }
