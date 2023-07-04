@@ -19,8 +19,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -43,12 +41,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.myweatherapplication.ui.theme.MyWeatherApplicationTheme
 import java.text.SimpleDateFormat
-import java.time.Instant
-import java.time.format.DateTimeFormatter
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.ZoneOffset
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -100,6 +92,7 @@ fun ForecastScreen() {
                     .fillMaxWidth()
                     .background(color = Color.Yellow)
                     .fillMaxWidth()
+                    .padding(12.dp)
             )
         }
         items(forecastItems) { forecast ->
@@ -109,56 +102,56 @@ fun ForecastScreen() {
 
             Column(
                 modifier = Modifier
-                    .padding(vertical = 8.dp)
                     .fillMaxWidth()
                     .wrapContentHeight()
-                    .padding(horizontal = 16.dp)
+                    .padding(3.dp)
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp),
+                        .padding(vertical = 5.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Image(
                         painter = painterResource(R.drawable.day_icon), // Replace with your icon resource
                         contentDescription = stringResource(R.string.icon),
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(30.dp)
                     )
-//                    Spacer(modifier = Modifier.size(8.dp))
-                    Column(modifier = Modifier.weight(1f)) {
+                    Column(modifier = Modifier.padding(2.dp)) {
                         Text(
                             text = dateFormatter.format(date),
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
                         )
-                        Spacer(modifier = Modifier.size(4.dp))
+                    }
+
+                    Column() {
                         Text(
                             text = "Temp: ${forecast.temp.day.toFloat()}°",
                         )
-                    }
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Column(modifier = Modifier.weight(1f)) {
+                        Spacer(modifier = Modifier.size(6.dp))
                         Text(
                             text = "High: ${forecast.temp.max.toFloat()}°",
                         )
-                        Spacer(modifier = Modifier.size(4.dp))
+
+                    }
+                    Text(
+                        text = "Low: ${forecast.temp.min.toFloat()}°",
+                        modifier = Modifier.padding(2.dp,28.dp,1.dp)
+                    )
+                    Column(
+                    ) {
                         Text(
-                            text = "Low: ${forecast.temp.min.toFloat()}°",
+                            text = "Sunrise: ${timeFormatter.format(sunrise)}",
+                        )
+                        Spacer(modifier = Modifier.size(6.dp))
+
+                        Text(
+                            text = "Sunset: ${timeFormatter.format(sunset)}",
                         )
                     }
                 }
-                Spacer(modifier = Modifier.size(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Sunrise: ${timeFormatter.format(sunrise)}",
-                    )
-                    Text(
-                        text = "Sunset: ${timeFormatter.format(sunset)}",
-                    )
-                }
+
+
             }
         }
     }
@@ -198,7 +191,9 @@ fun Greeting(name: String, navController: NavHostController) {
                         text = stringResource(R.string.app_name),
                         fontWeight = FontWeight.Bold,
                         fontSize = 30.sp,
+
                     )
+                    Modifier.padding(12.dp)
                 },
                 colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color.Yellow)
             )
@@ -309,6 +304,7 @@ fun Greeting(name: String, navController: NavHostController) {
 @Composable
 fun GreetingPreview() {
     MyWeatherApplicationTheme {
+//        ForecastScreen()
         val navController = rememberNavController()
         Greeting(
             name = "Class",
