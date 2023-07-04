@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -89,6 +90,18 @@ fun ForecastScreen() {
     val timeFormatter = SimpleDateFormat("h:mma", Locale.getDefault())
 
     LazyColumn {
+        item {
+            Text(
+                text = "Forecast",
+                fontWeight = FontWeight.Bold,
+                fontSize = 35.sp,
+                color = Color.Black,  // Set the color to yellow
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(color = Color.Yellow)
+                    .fillMaxWidth()
+            )
+        }
         items(forecastItems) { forecast ->
             val date = Date(forecast.date)
             val sunrise = Date(forecast.sunrise)
@@ -112,7 +125,7 @@ fun ForecastScreen() {
                         contentDescription = stringResource(R.string.icon),
                         modifier = Modifier.size(40.dp)
                     )
-                    Spacer(modifier = Modifier.size(8.dp))
+//                    Spacer(modifier = Modifier.size(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = dateFormatter.format(date),
