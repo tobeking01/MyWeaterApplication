@@ -59,13 +59,13 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun WeatherApp() {
-    val navController = rememberNavController()
+    val navController = rememberNavController() // Create a NavController to manage navigation within the app
 
-    NavHost(navController = navController, startDestination = "Start") {
+    NavHost(navController = navController, startDestination = "Start") { // Set up navigation using NavHost
         composable("Start") {
             Greeting(
                 name = "Class",
-                navController = navController
+                navController = navController // Pass the NavController to the Greeting composable
             )
         }
         composable("Forecast") {
@@ -76,29 +76,29 @@ fun WeatherApp() {
 
 @Composable
 fun ForecastScreen() {
-    val forecastItems = remember { generateForecastItems() }
+    val forecastItems = remember { generateForecastItems() } // Generate forecast items using the generateForecastItems function
 
-    val dateFormatter = SimpleDateFormat("MMM d", Locale.getDefault())
-    val timeFormatter = SimpleDateFormat("h:mma", Locale.getDefault())
+    val dateFormatter = SimpleDateFormat("MMM d", Locale.getDefault()) // Format the date
+    val timeFormatter = SimpleDateFormat("h:mma", Locale.getDefault()) // Format the time
 
     LazyColumn {
         item {
             Text(
-                text = "Forecast",
+                text = "Forecast", // Display the forecast title
                 fontWeight = FontWeight.Bold,
                 fontSize = 35.sp,
-                color = Color.Black,  // Set the color to yellow
+                color = Color.Black,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(color = Color.Yellow)
+                    .background(color = Color.Yellow) // Set the background color to yellow
                     .fillMaxWidth()
                     .padding(12.dp)
             )
         }
         items(forecastItems) { forecast ->
-            val date = Date(forecast.date)
-            val sunrise = Date(forecast.sunrise)
-            val sunset = Date(forecast.sunset)
+            val date = Date(forecast.date) // Convert the forecast's date to a Date object
+            val sunrise = Date(forecast.sunrise) // Convert the forecast's sunrise time to a Date object
+            val sunset = Date(forecast.sunset) // Convert the forecast's sunset time to a Date object
 
             Column(
                 modifier = Modifier
@@ -113,45 +113,40 @@ fun ForecastScreen() {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Image(
-                        painter = painterResource(R.drawable.day_icon), // Replace with your icon resource
+                        painter = painterResource(R.drawable.day_icon), // Display the day icon
                         contentDescription = stringResource(R.string.icon),
                         modifier = Modifier.size(30.dp)
                     )
                     Column(modifier = Modifier.padding(2.dp)) {
                         Text(
-                            text = dateFormatter.format(date),
+                            text = dateFormatter.format(date), // Display the formatted date
                             fontWeight = FontWeight.Bold,
                         )
                     }
-
                     Column() {
                         Text(
-                            text = "Temp: ${forecast.temp.day.toFloat()}°",
+                            text = "Temp: ${forecast.temp.day.toFloat()}°", // Display the day temperature
                         )
                         Spacer(modifier = Modifier.size(6.dp))
                         Text(
-                            text = "High: ${forecast.temp.max.toFloat()}°",
+                            text = "High: ${forecast.temp.max.toFloat()}°", // Display the maximum temperature
                         )
-
                     }
                     Text(
-                        text = "Low: ${forecast.temp.min.toFloat()}°",
+                        text = "Low: ${forecast.temp.min.toFloat()}°", // Display the minimum temperature
                         modifier = Modifier.padding(2.dp,28.dp,1.dp)
                     )
                     Column(
                     ) {
                         Text(
-                            text = "Sunrise: ${timeFormatter.format(sunrise)}",
+                            text = "Sunrise: ${timeFormatter.format(sunrise)}", // Display the sunrise time
                         )
                         Spacer(modifier = Modifier.size(6.dp))
-
                         Text(
-                            text = "Sunset: ${timeFormatter.format(sunset)}",
+                            text = "Sunset: ${timeFormatter.format(sunset)}", // Display the sunset time
                         )
                     }
                 }
-
-
             }
         }
     }
@@ -159,51 +154,51 @@ fun ForecastScreen() {
 
 private fun generateForecastItems(): List<DayForecast> {
     val forecastItems = mutableListOf<DayForecast>()
-    val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
-    for (i in 0 until 16) {
-        val date = calendar.time
-        val sunrise = calendar.apply { add(Calendar.HOUR_OF_DAY, i + 1) }.time
-        val sunset = calendar.apply { add(Calendar.HOUR_OF_DAY, 11) }.time
+    val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")) // Get an instance of Calendar set to UTC time zone
 
-        val temp = ForecastTemp(i * 10.0f, i * 5.0f, i * 15.0f)
+    for (i in 0 until 16) {
+        val date = calendar.time // Get the current date from the calendar
+        val sunrise = calendar.apply { add(Calendar.HOUR_OF_DAY, i + 1) }.time // Add i + 1 hours to the calendar and get the sunrise time
+        val sunset = calendar.apply { add(Calendar.HOUR_OF_DAY, 11) }.time // Add 11 hours to the calendar and get the sunset time
+
+        val temp = ForecastTemp(i * 10.0f, i * 5.0f, i * 15.0f) // Create a ForecastTemp object with calculated temperature values
         val forecast = DayForecast(
             date = date.time,
             sunrise = sunrise.time,
             sunset = sunset.time,
             temp = temp,
-            precipitation = i * 1.2f,
-            humidity = i * 80
+            precipitation = i * 1.2f, // Calculate the precipitation value based on the loop variable
+            humidity = i * 80 // Calculate the humidity value based on the loop variable
         )
-        forecastItems.add(forecast)
+        forecastItems.add(forecast) // Add the forecast object to the forecastItems list
     }
 
-    return forecastItems
+    return forecastItems // Return the generated forecast items list
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Greeting(name: String, navController: NavHostController) {
+fun Greeting(name: String, navController: NavHostController) { // pass in the navController
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = stringResource(R.string.app_name),
+                        text = stringResource(R.string.app_name), // Display the app name as the title
                         fontWeight = FontWeight.Bold,
                         fontSize = 30.sp,
-
                     )
                     Modifier.padding(12.dp)
                 },
-                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color.Yellow)
+                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color.Yellow) // Set the top app bar color to yellow
             )
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 modifier = Modifier
                     .padding(all = 16.dp),
-                onClick = { navController.navigate("Forecast") },
-                text = { Text(text = stringResource(R.string.forecast)) },
+                onClick = { navController.navigate("Forecast") }, // Navigate to the Forecast screen when the FAB is clicked
+                text = { Text(text = stringResource(R.string.forecast)) }, // Display the FAB text
                 icon = {}
             )
         },
@@ -214,7 +209,7 @@ fun Greeting(name: String, navController: NavHostController) {
                 .padding(contentPadding)
         ) {
             Text(
-                text = stringResource(R.string.city_state),
+                text = stringResource(R.string.city_state), // Display the city/state text
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Bold,
                 fontSize = 30.sp,
@@ -225,7 +220,7 @@ fun Greeting(name: String, navController: NavHostController) {
             )
             Row(horizontalArrangement = Arrangement.SpaceEvenly) {
                 Text(
-                    text = stringResource(R.string.current_temperature),
+                    text = stringResource(R.string.current_temperature), // Display the current temperature text
                     textAlign = TextAlign.Justify,
                     fontWeight = FontWeight.Bold,
                     fontSize = 110.sp,
@@ -235,7 +230,7 @@ fun Greeting(name: String, navController: NavHostController) {
                     )
                 )
                 Image(
-                    painter = painterResource(R.drawable.day_icon),
+                    painter = painterResource(R.drawable.day_icon), // Display the day icon
                     contentDescription = stringResource(R.string.icon),
                     modifier = Modifier
                         .aspectRatio(9f / 10f)
@@ -246,7 +241,7 @@ fun Greeting(name: String, navController: NavHostController) {
                 )
             }
             Text(
-                text = stringResource(R.string.wind_chill),
+                text = stringResource(R.string.wind_chill), // Display the wind chill text
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
@@ -257,7 +252,7 @@ fun Greeting(name: String, navController: NavHostController) {
             )
             Spacer(modifier = Modifier.size(30.dp))
             Text(
-                text = stringResource(R.string.low),
+                text = stringResource(R.string.low), // Display the low temperature text
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
@@ -267,7 +262,7 @@ fun Greeting(name: String, navController: NavHostController) {
                 )
             )
             Text(
-                text = stringResource(R.string.high),
+                text = stringResource(R.string.high), // Display the high temperature text
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
@@ -277,7 +272,7 @@ fun Greeting(name: String, navController: NavHostController) {
                 )
             )
             Text(
-                text = stringResource(R.string.humidity),
+                text = stringResource(R.string.humidity), // Display the humidity text
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
@@ -287,7 +282,7 @@ fun Greeting(name: String, navController: NavHostController) {
                 )
             )
             Text(
-                text = stringResource(R.string.pressure),
+                text = stringResource(R.string.pressure), // Display the pressure text
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
@@ -308,7 +303,7 @@ fun GreetingPreview() {
         val navController = rememberNavController()
         Greeting(
             name = "Class",
-            navController = navController
+            navController = navController // Pass the NavController to the Greeting composable
         )
     }
 }
