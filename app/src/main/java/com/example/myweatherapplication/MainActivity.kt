@@ -90,7 +90,7 @@ fun ForecastScreen() {
                 color = Color.Black,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(color = Color.Yellow) // Set the background color to yellow
+                    .background(color = Color.Cyan) // Set the background color to yellow
                     .fillMaxWidth()
                     .padding(12.dp)
             )
@@ -190,7 +190,7 @@ fun Greeting(name: String, navController: NavHostController) { // pass in the na
                     )
                     Modifier.padding(12.dp)
                 },
-                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color.Yellow) // Set the top app bar color to yellow
+                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color.Cyan) // Set the top app bar color to yellow
             )
         },
         floatingActionButton = {
