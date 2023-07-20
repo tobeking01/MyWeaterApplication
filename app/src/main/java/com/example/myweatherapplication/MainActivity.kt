@@ -194,9 +194,10 @@ fun EmptyView() {
 
 @Composable
 fun WeatherConditionIcon(
-    url: String
+    url: String,
+    modifier: Modifier = Modifier
 ) {
-    AsyncImage(model = url, contentDescription = "")
+    AsyncImage(model = url, contentDescription = "", modifier = modifier)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -263,17 +264,14 @@ fun Greeting(
                             vertical = 15.dp
                         )
                     )
-                    Image(
-                        painter = painterResource(R.drawable.day_icon), // Display the day icon
-                        contentDescription = stringResource(R.string.icon),
+                    WeatherConditionIcon(url = weatherData.value?.iconUrl ?: "",
                         modifier = Modifier
-                            .aspectRatio(9f / 12f)
-                            .size(50.dp)
+                            .aspectRatio(9f / 12f) // Adjust the aspect ratio as needed
+                            .size(100.dp) // Adjust the size as needed
                             .padding(
                                 horizontal = 5.dp,
                                 vertical = 15.dp
-                            )
-                    )
+                            ))
                 }
                 Text(
                     text = "Feels like ${weatherData.value?.main?.feelsLike}°", // Display the wind speed text
