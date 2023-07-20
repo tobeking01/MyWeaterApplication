@@ -1,5 +1,6 @@
 package com.example.myweatherapplication
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -20,15 +21,17 @@ class CurrentConditionsViewModel @Inject constructor(private val apiService: Wea
     fun viewAppeared() {
         viewModelScope.launch {
             try {
-                val response = apiService.getWeatherData("55420")
+                val response = apiService.getWeatherData()
                 if (response.isSuccessful) {
                     val weatherData = response.body()
                     _weatherData.value = weatherData
                 } else {
                     // Handle error case
+                    Log.e("CurrentConditionsViewModel", "API call failed: ${response.errorBody()}")
                 }
             } catch (e: Exception) {
                 // Handle exception
+                Log.e("CurrentConditionsViewModel", "Exception: $e")
             }
         }
     }

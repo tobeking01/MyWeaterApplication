@@ -7,15 +7,16 @@ import retrofit2.http.Query
 interface WeatherApi {
     @GET("weather")
     suspend fun getWeatherData(
-        @Query("zip") zipCode: String,
+        @Query("zip") zipCode: String = ZIPCODE,
         @Query("units") units: String = "imperial",
         @Query("appid") appId: String = "326dcf6708e0a90b0f48b9818036e58e"
-    ): Response<WeatherData> // Update the response type to WeatherData
+    ): Response<WeatherData>
 
-    @GET("forecast")
+    @GET("forecast/daily")
     suspend fun getForecast(
-        @Query("zip") zipCode: String,
+        @Query("zip") zipCode: String = ZIPCODE,
+        @Query("cnt") count: Int = FORECAST_COUNT,
         @Query("units") units: String = "imperial",
-        @Query("appid") apiKey: String = "326dcf6708e0a90b0f48b9818036e58e"
-    ): Response<DayForecastResponse> // Replace DayForecastResponse with the actual response type
+        @Query("appid") appId: String = "326dcf6708e0a90b0f48b9818036e58e"
+    ): Response<Forecast>
 }

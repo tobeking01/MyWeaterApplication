@@ -1,6 +1,7 @@
 package com.example.myweatherapplication
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -10,10 +11,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,13 +42,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
 import com.example.myweatherapplication.ui.theme.MyWeatherApplicationTheme
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -57,99 +65,17 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MyWeatherApplicationTheme {
-                WeatherApp()
-            }
-        }
-    }
-}
+                val navController = rememberNavController() // Create a NavController to manage navigation within the app
 
-@Composable
-fun WeatherApp() {
-    val navController = rememberNavController() // Create a NavController to manage navigation within the app
-
-    NavHost(navController = navController, startDestination = "Start") { // Set up navigation using NavHost
-        composable("Start") {
-            Greeting(
-                name = "Class",
-                navController = navController // Pass the NavController to the Greeting composable
-            )
-        }
-        composable("Forecast") {
-            ForecastScreen()
-        }
-    }
-}
-
-@Composable
-fun ForecastScreen() {
-    val forecastItems = remember { generateForecastItems() } // Generate forecast items using the generateForecastItems function
-
-    val dateFormatter = SimpleDateFormat("MMM d", Locale.getDefault()) // Format the date
-    val timeFormatter = SimpleDateFormat("h:mma", Locale.getDefault()) // Format the time
-
-    LazyColumn {
-        item {
-            Text(
-                text = "Forecast", // Display the forecast title
-                fontWeight = FontWeight.Bold,
-                fontSize = 35.sp,
-                color = Color.Black,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(color = Color.Cyan) // Set the background color to yellow
-                    .fillMaxWidth()
-                    .padding(12.dp)
-            )
-        }
-        items(forecastItems) { forecast ->
-            val date = Date(forecast.date) // Convert the forecast's date to a Date object
-            val sunrise = Date(forecast.sunrise) // Convert the forecast's sunrise time to a Date object
-            val sunset = Date(forecast.sunset) // Convert the forecast's sunset time to a Date object
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .padding(3.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 5.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.day_icon), // Display the day icon
-                        contentDescription = stringResource(R.string.icon),
-                        modifier = Modifier.size(30.dp)
-                    )
-                    Column(modifier = Modifier.padding(2.dp)) {
-                        Text(
-                            text = dateFormatter.format(date), // Display the formatted date
-                            fontWeight = FontWeight.Bold,
+                NavHost(navController = navController, startDestination = "Start") { // Set up navigation using NavHost
+                    composable("Start") {
+                        Greeting(
+                            name = "Class",
+                            navController = navController
                         )
                     }
-                    Column {
-                        Text(
-                            text = "Temp: ${forecast.temp.day}°", // Display the day temperature
-                        )
-                        Spacer(modifier = Modifier.size(6.dp))
-                        Text(
-                            text = "High: ${forecast.temp.max}°", // Display the maximum temperature
-                        )
-                    }
-                    Text(
-                        text = "Low: ${forecast.temp.min}°", // Display the minimum temperature
-                        modifier = Modifier.padding(2.dp,28.dp,1.dp)
-                    )
-                    Column{
-                        Text(
-                            text = "Sunrise: ${timeFormatter.format(sunrise)}", // Display the sunrise time
-                        )
-                        Spacer(modifier = Modifier.size(6.dp))
-                        Text(
-                            text = "Sunset: ${timeFormatter.format(sunset)}", // Display the sunset time
-                        )
+                    composable("Forecast") {
+                        ForecastScreen()
                     }
                 }
             }
@@ -157,28 +83,120 @@ fun ForecastScreen() {
     }
 }
 
-private fun generateForecastItems(): List<DayForecast> {
-    val forecastItems = mutableListOf<DayForecast>()
-    val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")) // Get an instance of Calendar set to UTC time zone
 
-    for (i in 0 until 16) {
-        val date = calendar.time // Get the current date from the calendar
-        val sunrise = calendar.apply { add(Calendar.HOUR_OF_DAY, i + 1) }.time // Add i + 1 hours to the calendar and get the sunrise time
-        val sunset = calendar.apply { add(Calendar.HOUR_OF_DAY, 11) }.time // Add 11 hours to the calendar and get the sunset time
+@Composable
+fun ForecastScreen(viewModel: ForecastViewModel = hiltViewModel()) {
 
-        val temp = ForecastTemp(i * 10.0f, i * 5.0f, i * 15.0f, i * 2.0f, i * 3.0f, i * 4.0f) // Create a ForecastTemp object with calculated temperature values
-        val forecast = DayForecast(
-            date = date.time,
-            sunrise = sunrise.time,
-            sunset = sunset.time,
-            temp = temp,
-            precipitation = i * 1.2f, // Calculate the precipitation value based on the loop variable
-            humidity = i * 80 // Calculate the humidity value based on the loop variable
-        )
-        forecastItems.add(forecast) // Add the forecast object to the forecastItems list
+    val forecastData = viewModel.forecastData.observeAsState()
+
+    val dateFormatter = SimpleDateFormat("MMM d", Locale.getDefault()) // Format the date
+    val timeFormatter = SimpleDateFormat("h:mma", Locale.getDefault()) // Format the time
+
+    LaunchedEffect(Unit) {
+        viewModel.fetchWeatherForecast()
     }
 
-    return forecastItems // Return the generated forecast items list
+    // Observe the LiveData and check if the data is available
+    forecastData.value?.let { forecasts ->
+        if (forecasts.isEmpty()) {
+            EmptyView()
+        } else {
+            LazyColumn {
+                item {
+                    Text(
+                        text = "Forecast",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 35.sp,
+                        color = Color.Black,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(color = Color.Cyan)
+                            .fillMaxWidth()
+                            .padding(12.dp)
+                    )
+                }
+                forecasts.forEach { dayForecast ->
+                    // Use dayForecast properties to populate the UI
+                    val date = Date(dayForecast.dayTime * 1000)
+                    val sunrise = Date(dayForecast.temp.morn.toLong() * 1000)
+                    val sunset = Date(dayForecast.temp.eve.toLong() * 1000)
+
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight()
+                                .padding(3.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 5.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                WeatherConditionIcon(url = dayForecast.iconUrl)
+                                Column(modifier = Modifier.padding(2.dp)) {
+                                    Text(
+                                        text = dateFormatter.format(date), // Display the formatted date
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                }
+                                Column {
+                                    Text(
+                                        text = "Temp: ${dayForecast.dayTemp}°", // Display the day temperature
+                                    )
+                                    Spacer(modifier = Modifier.size(6.dp))
+                                    Text(
+                                        text = "High: ${dayForecast.highTemp}°", // Display the maximum temperature
+                                    )
+                                }
+                                Text(
+                                    text = "Low: ${dayForecast.lowTemp}°",  // Display the minimum temperature
+                                    modifier = Modifier.padding(2.dp, 28.dp, 1.dp)
+                                )
+                                Column {
+                                    Text(
+                                        text = "Sunrise: ${timeFormatter.format(sunrise)}", // Display the sunrise time
+                                    )
+                                    Spacer(modifier = Modifier.size(6.dp))
+                                    Text(
+                                        text = "Sunset: ${timeFormatter.format(sunset)}", // Display the sunset time
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun EmptyView() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .wrapContentSize(Alignment.Center)
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "No forecast data available",
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp,
+            color = Color.Gray
+        )
+    }
+}
+
+@Composable
+fun WeatherConditionIcon(
+    url: String
+) {
+    AsyncImage(model = url, contentDescription = "")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -188,7 +206,7 @@ fun Greeting(
     navController: NavHostController,
     currentConditionsViewModel: CurrentConditionsViewModel = hiltViewModel()
 ) {
-    val currentConditions by currentConditionsViewModel.weatherData.observeAsState()
+    val currentConditions = currentConditionsViewModel.weatherData.observeAsState()
 
     LaunchedEffect(Unit) {
         currentConditionsViewModel.viewAppeared()
@@ -225,7 +243,7 @@ fun Greeting(
         ) {
             currentConditions?.let { weatherData ->
                 Text(
-                    text = "${weatherData.name}", // Display the city name
+                    text = "${weatherData.value?.name}", // Display the city name
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
                     fontSize = 30.sp,
@@ -236,10 +254,10 @@ fun Greeting(
                 )
                 Row(horizontalArrangement = Arrangement.SpaceEvenly) {
                     Text(
-                        text = "${weatherData.main.temp}°", // Display the current temperature text
+                        text = "${weatherData.value?.main?.temp}°", // Display the current temperature text
                         textAlign = TextAlign.Justify,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 80.sp,
+                        fontSize = 70.sp,
                         modifier = Modifier.padding(
                             horizontal = 45.dp,
                             vertical = 15.dp
@@ -249,15 +267,16 @@ fun Greeting(
                         painter = painterResource(R.drawable.day_icon), // Display the day icon
                         contentDescription = stringResource(R.string.icon),
                         modifier = Modifier
-                            .aspectRatio(9f / 10f)
+                            .aspectRatio(9f / 12f)
+                            .size(50.dp)
                             .padding(
-                                horizontal = 10.dp,
+                                horizontal = 5.dp,
                                 vertical = 15.dp
                             )
                     )
                 }
                 Text(
-                    text = "Feels like ${weatherData.main.feelsLike}°", // Display the wind speed text
+                    text = "Feels like ${weatherData.value?.main?.feelsLike}°", // Display the wind speed text
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
@@ -268,7 +287,7 @@ fun Greeting(
                 )
                 Spacer(modifier = Modifier.size(30.dp))
                 Text(
-                    text = "Low ${weatherData.main.tempMin}°", // Display the low temperature text
+                    text = "Low ${weatherData.value?.main?.tempMin}°", // Display the low temperature text
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
@@ -278,7 +297,7 @@ fun Greeting(
                     )
                 )
                 Text(
-                    text = "High ${weatherData.main.tempMax}°", // Display the high temperature text
+                    text = "High ${weatherData.value?.main?.tempMax}°", // Display the high temperature text
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
@@ -288,7 +307,7 @@ fun Greeting(
                     )
                 )
                 Text(
-                    text = "Humidity ${weatherData.main.humidity}%", // Display the humidity text
+                    text = "Humidity ${weatherData.value?.main?.humidity}%", // Display the humidity text
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
@@ -298,7 +317,7 @@ fun Greeting(
                     )
                 )
                 Text(
-                    text = "Pressure ${weatherData.main.pressure} hPa", // Display the pressure text
+                    text = "Pressure ${weatherData.value?.main?.pressure} hPa", // Display the pressure text
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
