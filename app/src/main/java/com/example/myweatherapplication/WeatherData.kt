@@ -24,6 +24,8 @@ data class Forecast(
 @JsonClass(generateAdapter = true)
 data class DayForecast(
     @Json(name = "dt") val dayTime: Long,
+    @Json(name = "sunrise") val sunrise: Long,
+    @Json(name = "sunset") val sunset: Long,
     @Json(name = "temp") val temp: Temperature,
     @Json(name = "weather") private val weatherConditions: List<WeatherConditions>,
     ){
@@ -33,12 +35,6 @@ data class DayForecast(
         get() = temp.min
     @Json(name = "max") val highTemp: Double
         get() = temp.max
-    @Json(name = "night") val night: Double
-        get() = temp.night
-    @Json(name = "eve") val evening: Double
-        get() = temp.eve
-    @Json(name = "morn") val morning: Double
-        get() = temp.morn
     @Json(name = "icon") val iconUrl: String
         get() = "https://openweathermap.org/img/wn/${weatherConditions.firstOrNull()?.icon}@2x.png"
 }

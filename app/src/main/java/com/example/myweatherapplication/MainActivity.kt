@@ -118,8 +118,8 @@ fun ForecastScreen(viewModel: ForecastViewModel = hiltViewModel()) {
                 forecasts.forEach { dayForecast ->
                     // Use dayForecast properties to populate the UI
                     val date = Date(dayForecast.dayTime * 1000)
-                    val sunrise = Date(dayForecast.morning.toLong() * 1000)
-                    val sunset = Date(dayForecast.evening.toLong() * 1000)
+                    val sunrise = Date(dayForecast.sunrise * 1000)
+                    val sunset = Date(dayForecast.sunset * 1000)
 
                     item {
                         Column(
