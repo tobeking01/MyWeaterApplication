@@ -1,10 +1,8 @@
 package com.example.myweatherapplication
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
@@ -242,7 +239,7 @@ fun Greeting(
             modifier = Modifier
                 .padding(contentPadding)
         ) {
-            currentConditions?.let { weatherData ->
+            currentConditions.let { weatherData ->
                 Text(
                     text = "${weatherData.value?.name}", // Display the city name
                     textAlign = TextAlign.Center,
