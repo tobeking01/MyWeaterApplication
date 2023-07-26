@@ -215,116 +215,124 @@ fun Greeting(
             TopAppBar(
                 title = {
                     Text(
-                        text = stringResource(R.string.app_name), // Display the app name as the title
+                        text = stringResource(R.string.app_name),
                         fontWeight = FontWeight.Bold,
                         fontSize = 30.sp,
                     )
                     Modifier.padding(12.dp)
                 },
-                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color.Cyan) // Set the top app bar color to yellow
+                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color.Cyan)
+            )
+        },
+        floatingActionButton = {
+            // Floating action button will be displayed through the CurrentWeatherConditions function
+        },
+        floatingActionButtonPosition = FabPosition.Center,
+    ) { contentPadding ->
+        CurrentWeatherConditions(
+            weatherData = currentConditions.value,
+            navController = navController
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CurrentWeatherConditions(weatherData: WeatherData?, navController: NavHostController) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.app_name),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 30.sp,
+                    )
+                },
+                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color.Cyan)
             )
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                modifier = Modifier
-                    .padding(all = 16.dp),
-                onClick = { navController.navigate("Forecast") }, // Navigate to the Forecast screen when the FAB is clicked
-                text = { Text(text = stringResource(R.string.forecast)) }, // Display the FAB text
+                onClick = { navController.navigate("Forecast") },
+                text = { Text(text = stringResource(R.string.forecast)) },
                 icon = {}
             )
         },
-        floatingActionButtonPosition = FabPosition.Center,
+        floatingActionButtonPosition = FabPosition.End, // Position the FAB at the end of the screen
     ) { contentPadding ->
         Column(
             modifier = Modifier
+                .fillMaxSize()
                 .padding(contentPadding)
         ) {
-            currentConditions.let { weatherData ->
+            weatherData?.let { data ->
                 Text(
-                    text = "${weatherData.value?.name}", // Display the city name
+                    text = "${data.name}",
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
                     fontSize = 30.sp,
-                    modifier = Modifier.padding(
-                        horizontal = 90.dp,
-                        vertical = 20.dp
-                    )
+                    modifier = Modifier.padding(vertical = 20.dp, horizontal = 100.dp)
                 )
-                Row(horizontalArrangement = Arrangement.SpaceEvenly) {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Text(
-                        text = "${weatherData.value?.main?.temp}°", // Display the current temperature text
+                        text = "${data.main?.temp}°",
                         textAlign = TextAlign.Justify,
                         fontWeight = FontWeight.Bold,
                         fontSize = 70.sp,
-                        modifier = Modifier.padding(
-                            horizontal = 45.dp,
-                            vertical = 15.dp
-                        )
+                        modifier = Modifier.padding(vertical = 15.dp)
                     )
-                    WeatherConditionIcon(url = weatherData.value?.iconUrl ?: "",
+                    WeatherConditionIcon(
+                        url = data.iconUrl ?: "",
                         modifier = Modifier
-                            .aspectRatio(9f / 12f) // Adjust the aspect ratio as needed
-                            .size(100.dp) // Adjust the size as needed
-                            .padding(
-                                horizontal = 5.dp,
-                                vertical = 15.dp
-                            ))
+                            .aspectRatio(9f / 12f)
+                            .size(100.dp)
+                    )
                 }
                 Text(
-                    text = "Feels like ${weatherData.value?.main?.feelsLike}°", // Display the wind speed text
+                    text = "Feels like ${data.main?.feelsLike}°",
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
-                    modifier = Modifier.padding(
-                        horizontal = 50.dp,
-                        vertical = 2.dp
-                    )
+                    modifier = Modifier.padding(vertical = 2.dp)
                 )
                 Spacer(modifier = Modifier.size(30.dp))
                 Text(
-                    text = "Low ${weatherData.value?.main?.tempMin}°", // Display the low temperature text
+                    text = "Low ${data.main?.tempMin}°",
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
-                    modifier = Modifier.padding(
-                        horizontal = 30.dp,
-                        vertical = 2.dp
-                    )
+                    modifier = Modifier.padding(vertical = 2.dp)
                 )
                 Text(
-                    text = "High ${weatherData.value?.main?.tempMax}°", // Display the high temperature text
+                    text = "High ${data.main?.tempMax}°",
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
-                    modifier = Modifier.padding(
-                        horizontal = 30.dp,
-                        vertical = 2.dp
-                    )
+                    modifier = Modifier.padding(vertical = 2.dp)
                 )
                 Text(
-                    text = "Humidity ${weatherData.value?.main?.humidity}%", // Display the humidity text
+                    text = "Humidity ${data.main?.humidity}%",
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
-                    modifier = Modifier.padding(
-                        horizontal = 30.dp,
-                        vertical = 2.dp
-                    )
+                    modifier = Modifier.padding(vertical = 2.dp)
                 )
                 Text(
-                    text = "Pressure ${weatherData.value?.main?.pressure} hPa", // Display the pressure text
+                    text = "Pressure ${data.main?.pressure} hPa",
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
-                    modifier = Modifier.padding(
-                        horizontal = 30.dp,
-                        vertical = 2.dp
-                    )
+                    modifier = Modifier.padding(vertical = 2.dp)
                 )
             }
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
@@ -335,5 +343,6 @@ fun GreetingPreview() {
             name = "Class",
             navController = navController // Pass the NavController to the Greeting composable
         )
+//        CurrentWeatherConditions(weatherData = null, navController = navController)
     }
 }
