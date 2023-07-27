@@ -21,12 +21,12 @@ class CurrentConditionsViewModel @Inject constructor(private val apiService: Wea
     val textFieldText: MutableLiveData<String> = MutableLiveData()
 
     // Function to perform input validation for the city name
-    private fun isValidCity(city: String): Boolean {
-        return city.isNotBlank()
+    private fun isValidZipCode(zipCode: String): Boolean {
+        return zipCode.matches(Regex("\\d{5}"))
     }
 
     fun fetchWeatherDataByCity(zipCode: String) {
-        if (isValidCity(zipCode)) {
+        if (isValidZipCode(zipCode)) {
             viewModelScope.launch {
                 try {
                     val response = apiService.getWeatherData(zipCode)
