@@ -15,10 +15,10 @@ class ForecastViewModel @Inject constructor(private val apiService: WeatherApi) 
     val forecastData: LiveData<List<DayForecast>>
         get() = _forecastLiveData
 
-    fun fetchWeatherForecast() {
+    fun fetchWeatherForecast(zipCode: String) {
         viewModelScope.launch {
             try {
-                val response = apiService.getForecast()
+                val response = apiService.getForecast(zipCode)
                 if (response.isSuccessful) {
                     val forecastData = response.body()
                     if (forecastData != null) {
