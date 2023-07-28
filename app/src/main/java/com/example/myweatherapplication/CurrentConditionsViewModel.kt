@@ -18,21 +18,39 @@ class CurrentConditionsViewModel @Inject constructor(private val apiService: Wea
     val weatherData: LiveData<WeatherData>
         get() = _weatherData
 
-    fun viewAppeared() {
-        viewModelScope.launch {
-            try {
-                val response = apiService.getWeatherData()
-                if (response.isSuccessful) {
-                    val weatherData = response.body()
-                    _weatherData.value = weatherData
-                } else {
-                    // Handle error case
-                    Log.e("CurrentConditionsViewModel", "API call failed: ${response.errorBody()}")
+    val textFieldText: MutableLiveData<String> = MutableLiveData()
+
+    // Function to perform input validation for the city name
+    private fun isValidZipCode(zipCode: String): Boolean {
+        return zipCode.matches(Regex("\\d{5}"))
+    }
+
+    fun fetchWeatherDataByCity(zipCode: String) {
+        if (isValidZipCode(zipCode)) {
+            viewModelScope.launch {
+                try {
+                    val response = apiService.getWeatherData(zipCode)
+                    if (response.isSuccessful) {
+                        val weatherData = response.body()
+                        _weatherData.value = weatherData
+                    } else {
+                        // Handle error case
+                        Log.e(
+                            "CurrentConditionsViewModel",
+                            "API call failed: ${response.errorBody()}"
+                        )
+                        // Handle invalid city input (e.g., show an error message to the user)
+                        Log.e("CurrentConditionsViewModel", "Invalid city: $zipCode")
+                    }
+                } catch (e: Exception) {
+                    // Handle exception
+                    Log.e("CurrentConditionsViewModel", "Exception: $e")
                 }
-            } catch (e: Exception) {
-                // Handle exception
-                Log.e("CurrentConditionsViewModel", "Exception: $e")
             }
         }
+    }
+
+    fun updateTextFieldText(newText: String) {
+        textFieldText.value = newText ?: ""
     }
 }

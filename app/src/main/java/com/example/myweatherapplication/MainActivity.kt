@@ -1,6 +1,8 @@
 package com.example.myweatherapplication
 
 import android.os.Bundle
+import android.util.Log
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -16,24 +18,29 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -41,27 +48,30 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import coil.compose.AsyncImage
 import com.example.myweatherapplication.ui.theme.MyWeatherApplicationTheme
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import java.util.TimeZone
+import kotlin.math.roundToInt
+
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             MyWeatherApplicationTheme {
+                window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
+
                 val navController = rememberNavController() // Create a NavController to manage navigation within the app
 
                 NavHost(navController = navController, startDestination = "Start") { // Set up navigation using NavHost
@@ -71,8 +81,12 @@ class MainActivity : ComponentActivity() {
                             navController = navController
                         )
                     }
-                    composable("Forecast") {
-                        ForecastScreen()
+                    composable(
+                        "Forecast/{zipCode}",
+                        arguments = listOf(navArgument("zipCode") { type = NavType.StringType })
+                    ) { backStackEntry ->
+                        val zipCode = backStackEntry.arguments?.getString("zipCode") ?: ZIPCODE // Get the ZIP code from the arguments
+                        ForecastScreen(navController = navController, zipCode = zipCode)
                     }
                 }
             }
@@ -82,15 +96,17 @@ class MainActivity : ComponentActivity() {
 
 
 @Composable
-fun ForecastScreen(viewModel: ForecastViewModel = hiltViewModel()) {
+fun ForecastScreen(navController: NavHostController,viewModel: ForecastViewModel = hiltViewModel(),
+                   zipCode: String) {
 
     val forecastData = viewModel.forecastData.observeAsState()
+
 
     val dateFormatter = SimpleDateFormat("MMM d", Locale.getDefault()) // Format the date
     val timeFormatter = SimpleDateFormat("h:mma", Locale.getDefault()) // Format the time
 
     LaunchedEffect(Unit) {
-        viewModel.fetchWeatherForecast()
+        viewModel.fetchWeatherForecast(zipCode)
     }
 
     // Observe the LiveData and check if the data is available
@@ -170,32 +186,7 @@ fun ForecastScreen(viewModel: ForecastViewModel = hiltViewModel()) {
 }
 
 
-@Composable
-fun EmptyView() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .wrapContentSize(Alignment.Center)
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "No forecast data available",
-            fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
-            color = Color.Gray
-        )
-    }
-}
 
-@Composable
-fun WeatherConditionIcon(
-    url: String,
-    modifier: Modifier = Modifier
-) {
-    AsyncImage(model = url, contentDescription = "", modifier = modifier)
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -204,10 +195,12 @@ fun Greeting(
     navController: NavHostController,
     currentConditionsViewModel: CurrentConditionsViewModel = hiltViewModel()
 ) {
+    var text by remember { mutableStateOf(TextFieldValue("")) }
+
     val currentConditions = currentConditionsViewModel.weatherData.observeAsState()
 
     LaunchedEffect(Unit) {
-        currentConditionsViewModel.viewAppeared()
+        currentConditionsViewModel.fetchWeatherDataByCity(ZIPCODE) // Fetch data for the default city on first composition
     }
 
     Scaffold(
@@ -221,15 +214,24 @@ fun Greeting(
                     )
                     Modifier.padding(12.dp)
                 },
-                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color.Cyan) // Set the top app bar color to yellow
+                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color.Cyan) // Set the top app bar color to cyan
             )
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 modifier = Modifier
                     .padding(all = 16.dp),
-                onClick = { navController.navigate("Forecast") }, // Navigate to the Forecast screen when the FAB is clicked
-                text = { Text(text = stringResource(R.string.forecast)) }, // Display the FAB text
+                onClick = {
+                    val city = text.text
+                    if (city.isBlank()) {
+                        currentConditionsViewModel.fetchWeatherDataByCity(ZIPCODE)
+                        navController.navigate("Forecast/$ZIPCODE") // Navigate to the Forecast screen with default ZIP code
+                    } else {
+                        currentConditionsViewModel.fetchWeatherDataByCity(city)
+                        navController.navigate("Forecast/$city") // Navigate to the Forecast screen with entered ZIP code
+                    }
+                },
+                text = { Text(text = stringResource(R.string.forecast)) },
                 icon = {}
             )
         },
@@ -321,8 +323,75 @@ fun Greeting(
                         vertical = 2.dp
                     )
                 )
+
+                // Add TextField with the label "Enter City Name"
+                TextField(
+                    value = text,
+                    onValueChange = { newText ->
+                        text = newText
+                        currentConditionsViewModel.updateTextFieldText(newText.text) // Update ViewModel with new text
+                    },
+                    label = { Text("Enter City Name") },
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+
+                // Add a button to fetch weather data based on the text in the TextField
+                Button(
+                    onClick = {
+                        val city = text.text
+                        if (!city.isBlank()) {
+                            currentConditionsViewModel.fetchWeatherDataByCity(city)
+                        } else {
+                            // Handle empty city input (e.g., show an error message to the user)
+                            Log.e("Greeting", "Empty city input")
+                        }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(16.dp)
+                ) {
+                    Text("Fetch Weather Data")
+                }
             }
         }
+    }
+}
+
+
+
+
+
+
+
+
+@Composable
+fun WeatherConditionIcon(
+    url: String,
+    modifier: Modifier = Modifier
+) {
+    AsyncImage(model = url, contentDescription = "", modifier = modifier)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EmptyView() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .wrapContentSize(Alignment.Center)
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "No forecast data available",
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp,
+            color = Color.Gray
+        )
     }
 }
 
@@ -335,5 +404,22 @@ fun GreetingPreview() {
             name = "Class",
             navController = navController // Pass the NavController to the Greeting composable
         )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ForecastScreenPreview() {
+    MyWeatherApplicationTheme {
+        val navController = rememberNavController()
+        ForecastScreen(navController = navController, zipCode = "YourDefaultZIPCodeHere")
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun EmptyViewPreview() {
+    MyWeatherApplicationTheme {
+        EmptyView()
     }
 }
