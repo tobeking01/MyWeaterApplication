@@ -2,6 +2,7 @@ package com.example.myweatherapplication
 
 import android.os.Bundle
 import android.util.Log
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -30,13 +31,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -51,21 +55,20 @@ import coil.compose.AsyncImage
 import com.example.myweatherapplication.ui.theme.MyWeatherApplicationTheme
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import java.util.TimeZone
 import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             MyWeatherApplicationTheme {
+                window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
+
                 val navController = rememberNavController() // Create a NavController to manage navigation within the app
 
                 NavHost(navController = navController, startDestination = "Start") { // Set up navigation using NavHost
@@ -301,10 +304,12 @@ fun Greeting(
                     )
                 )
                 // Add TextField with the label "Enter City Name"
+                var text by remember { mutableStateOf(TextFieldValue("")) }
                 TextField(
-                    value = currentConditionsViewModel.textFieldText.value ?: "",
+                    value = text,
                     onValueChange = { newText ->
-                        currentConditionsViewModel.updateTextFieldText(newText)
+                        text = newText
+                        currentConditionsViewModel.updateTextFieldText(newText.text) // Update ViewModel with new text
                     },
                     label = { Text("Enter City Name") },
                     singleLine = true,
@@ -334,6 +339,13 @@ fun Greeting(
         }
     }
 }
+
+
+
+
+
+
+
 
 @Composable
 fun WeatherConditionIcon(

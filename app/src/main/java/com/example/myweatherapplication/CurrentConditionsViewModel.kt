@@ -51,6 +51,6 @@ class CurrentConditionsViewModel @Inject constructor(private val apiService: Wea
     }
 
     fun updateTextFieldText(newText: String) {
-        textFieldText.value = newText
+        textFieldText.value = newText ?: ""
     }
 }
