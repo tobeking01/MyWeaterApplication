@@ -48,9 +48,11 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import coil.compose.AsyncImage
 import com.example.myweatherapplication.ui.theme.MyWeatherApplicationTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -59,6 +61,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import kotlin.math.roundToInt
+
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -78,8 +81,12 @@ class MainActivity : ComponentActivity() {
                             navController = navController
                         )
                     }
-                    composable("Forecast") {
-                        ForecastScreen(navController = navController)
+                    composable(
+                        "Forecast/{zipCode}",
+                        arguments = listOf(navArgument("zipCode") { type = NavType.StringType })
+                    ) { backStackEntry ->
+                        val zipCode = backStackEntry.arguments?.getString("zipCode") ?: ZIPCODE // Get the ZIP code from the arguments
+                        ForecastScreen(navController = navController, zipCode = zipCode)
                     }
                 }
             }
@@ -89,15 +96,17 @@ class MainActivity : ComponentActivity() {
 
 
 @Composable
-fun ForecastScreen(navController: NavHostController,viewModel: ForecastViewModel = hiltViewModel()) {
+fun ForecastScreen(navController: NavHostController,viewModel: ForecastViewModel = hiltViewModel(),
+                   zipCode: String) {
 
     val forecastData = viewModel.forecastData.observeAsState()
+
 
     val dateFormatter = SimpleDateFormat("MMM d", Locale.getDefault()) // Format the date
     val timeFormatter = SimpleDateFormat("h:mma", Locale.getDefault()) // Format the time
 
     LaunchedEffect(Unit) {
-        viewModel.fetchWeatherForecast(ZIPCODE)
+        viewModel.fetchWeatherForecast(zipCode)
     }
 
     // Observe the LiveData and check if the data is available
@@ -186,10 +195,12 @@ fun Greeting(
     navController: NavHostController,
     currentConditionsViewModel: CurrentConditionsViewModel = hiltViewModel()
 ) {
+    var text by remember { mutableStateOf(TextFieldValue("")) }
+
     val currentConditions = currentConditionsViewModel.weatherData.observeAsState()
 
     LaunchedEffect(Unit) {
-        currentConditionsViewModel.fetchWeatherDataByCity(ZIPCODE)
+        currentConditionsViewModel.fetchWeatherDataByCity(ZIPCODE) // Fetch data for the default city on first composition
     }
 
     Scaffold(
@@ -210,8 +221,17 @@ fun Greeting(
             ExtendedFloatingActionButton(
                 modifier = Modifier
                     .padding(all = 16.dp),
-                onClick = { navController.navigate("Forecast") }, // Navigate to the Forecast screen when the FAB is clicked
-                text = { Text(text = stringResource(R.string.forecast)) }, // Display the FAB text
+                onClick = {
+                    val city = text.text
+                    if (city.isBlank()) {
+                        currentConditionsViewModel.fetchWeatherDataByCity(ZIPCODE)
+                        navController.navigate("Forecast/$ZIPCODE") // Navigate to the Forecast screen with default ZIP code
+                    } else {
+                        currentConditionsViewModel.fetchWeatherDataByCity(city)
+                        navController.navigate("Forecast/$city") // Navigate to the Forecast screen with entered ZIP code
+                    }
+                },
+                text = { Text(text = stringResource(R.string.forecast)) },
                 icon = {}
             )
         },
@@ -303,8 +323,8 @@ fun Greeting(
                         vertical = 2.dp
                     )
                 )
+
                 // Add TextField with the label "Enter City Name"
-                var text by remember { mutableStateOf(TextFieldValue("")) }
                 TextField(
                     value = text,
                     onValueChange = { newText ->
@@ -321,8 +341,8 @@ fun Greeting(
                 // Add a button to fetch weather data based on the text in the TextField
                 Button(
                     onClick = {
-                        val city = currentConditionsViewModel.textFieldText.value
-                        if (!city.isNullOrBlank()) {
+                        val city = text.text
+                        if (!city.isBlank()) {
                             currentConditionsViewModel.fetchWeatherDataByCity(city)
                         } else {
                             // Handle empty city input (e.g., show an error message to the user)
@@ -391,7 +411,8 @@ fun GreetingPreview() {
 @Composable
 fun ForecastScreenPreview() {
     MyWeatherApplicationTheme {
-        ForecastScreen(navController = rememberNavController())
+        val navController = rememberNavController()
+        ForecastScreen(navController = navController, zipCode = "YourDefaultZIPCodeHere")
     }
 }
 
